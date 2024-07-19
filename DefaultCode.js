@@ -2,6 +2,7 @@
 let form = $("form:first");
 let phone = $("#subscription_customer_attributes_phone");
 let organization = $("#subscription_customer_attributes_organization");
+let updateTotalsButton = $("#form__section-apply-components");
 let submitbtn = $("#subscription_submit");
 
 $(document).ready(function () {
@@ -45,6 +46,10 @@ orgfield.blur(function () {
     removeAllErrors($(this));
   }
 });
+
+function updateTotals() {
+  updateTotalsButton.click();
+}
 
 function phoneLessThanTenDigits(phoneElement) {
   return phoneElement.val().length < 10;
@@ -102,11 +107,15 @@ function removeSpecificCustomFieldError(targetElement, errorText) {
 }
 
 function getComponentField(id) {
-  return $("#component_allocated_quantity_" + id);
+  let f = $("#component_allocated_quantity_" + id);
+  if(f.length < 1) console.log(`Couldn't find component with id of ${id}`);
+  return f
 }
 
 function getCustomVariableField(id) {
-  return $("#subscription_metafields_" + id);
+  let f = $("#subscription_metafields_" + id);
+  if(f.length < 1) console.log(`Couldn't find Custom Variable Field with id of ${id}`);
+  return f
 }
 
 function showHideCustomVariableField(fieldElement, show) {
