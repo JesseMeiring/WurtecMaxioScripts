@@ -2,9 +2,11 @@
 let form = $("form:first");
 let phone = $("#subscription_customer_attributes_phone");
 let organization = $("#subscription_customer_attributes_organization");
+let updateTotalsButton = $("#form__section-apply-components");
 let submitbtn = $("#subscription_submit");
 let WurLinkField = getComponentField("2263988");
 let WurtecWatchField = getComponentField("2314166");
+let WurtecWatchBox;
 let simCardFields = [
   getCustomVariableField("56029"),
   getCustomVariableField("56030"),
@@ -15,6 +17,8 @@ let simCardFields = [
 ];
 let qtyZeroEMessage = "Wur-Link quantity must be a positive number";
 let qtyAddOnMessage = "Add Ons must have a value of zero or greater";
+let watchRequiresMessage =
+  "Monitoring requires at least 1 Wurtec Watch per car";
 
 //Runs as soon as the page is ready
 $(document).ready(function () {
@@ -25,6 +29,11 @@ $(document).ready(function () {
   );
   organizationLabel.text(organizationLabel.text() + " *");
   showHideSimCards();
+  watchCheckBox = addCheckBox(WurtecWatchField[0].parentElement.parentElement);
+  watchCheckBox.checked = true;
+  watchCheckBox.addEventListener("change", (event) => {
+    watchCheckBoxblur();
+  });
 });
 
 //This attaches a function to the submitBtn on click
@@ -45,6 +54,10 @@ submitbtn.click(function () {
   }
   if (!validAddOnQty(WurtecWatchField.val())) {
     setCustomFieldError(WurtecWatchField, qtyAddOnMessage);
+    errorsCheck = true;
+  }
+  if (!monitoringQtyValid()) {
+    setCustomFieldError(WurtecWatchField, watchRequiresMessage);
     errorsCheck = true;
   }
   if (errorsCheck) {
@@ -71,6 +84,7 @@ organization.blur(function () {
   } else {
     removeAllErrors($(this));
   }
+  updateTotals();
 });
 
 //When Wur-Link qty is changed
@@ -81,6 +95,7 @@ WurLinkField.blur(function () {
   } else {
     removeSpecificCustomFieldError(WurLinkField, qtyZeroEMessage);
   }
+  updateTotals();
 });
 
 WurtecWatchField.blur(function () {
@@ -89,7 +104,28 @@ WurtecWatchField.blur(function () {
   } else {
     removeSpecificCustomFieldError($(this), qtyAddOnMessage);
   }
+  if (!monitoringQtyValid()) {
+    setCustomFieldError($(this), watchRequiresMessage);
+  } else {
+    removeSpecificCustomFieldError($(this), watchRequiresMessage);
+  }
+  updateTotals();
 });
+
+function updateTotals() {
+  updateTotalsButton.click();
+}
+
+//When WatchCheckBox changes
+function watchCheckBoxblur() {
+  if (!watchCheckBox.checked) WurtecWatchField.val(0);
+  if (!monitoringQtyValid()) {
+    setCustomFieldError(WurtecWatchField, watchRequiresMessage);
+  } else {
+    removeSpecificCustomFieldError(WurtecWatchField, watchRequiresMessage);
+  }
+  updateTotals();
+}
 
 function phoneLessThanTenDigits(phoneElement) {
   return phoneElement.val().length < 10;
@@ -109,6 +145,10 @@ function validAddOnQty(fieldValue) {
     positiveValue(fieldValue) &&
     !decimalValue(fieldValue)
   );
+}
+
+function monitoringQtyValid() {
+  return !(watchCheckBox.checked && WurtecWatchField.val() == 0);
 }
 
 function decimalValue(fieldValue) {
@@ -177,11 +217,15 @@ function removeSpecificCustomFieldError(targetElement, errorText) {
 }
 
 function getComponentField(id) {
-  return $("#component_allocated_quantity_" + id);
+  let f = $("#component_allocated_quantity_" + id);
+  if(f.length < 1) console.log(`Couldn't find component with id of ${id}`);
+  return f
 }
 
 function getCustomVariableField(id) {
-  return $("#subscription_metafields_" + id);
+  let f = $("#subscription_metafields_" + id);
+  if(f.length < 1) console.log(`Couldn't find Custom Variable Field with id of ${id}`);
+  return f
 }
 
 function showHideCustomVariableField(fieldElement, show) {
@@ -196,4 +240,35 @@ function showHideSimCards() {
   for (let i = 0; i < simCardFields.length; i++) {
     showHideCustomVariableField(simCardFields[i], WurLinkField.val() > i);
   }
+}
+
+function addCheckBox(element) {
+  const checkboxInput = document.createElement("input");
+  if (element) {
+    const checkboxWrapper = document.createElement("div");
+    checkboxWrapper.classList.add("checkbox-wrapper");
+    checkboxWrapper.style.paddingTop = "8px";
+
+    checkboxInput.type = "checkbox";
+    checkboxInput.id = "myCheckbox"; // Unique ID for the checkbox
+    checkboxInput.name = "myCheckbox";
+    checkboxInput.value = "myCheckboxValue";
+
+    const checkboxLabel = document.createElement("label");
+    checkboxLabel.htmlFor = "myCheckbox";
+    checkboxLabel.textContent = " I want to add Monitoring";
+    checkboxLabel.style.paddingLeft = "10px";
+    checkboxLabel.style.fontSize = "16px";
+    checkboxLabel.style.fontWeight = "400";
+
+    // Append the input and label to the wrapper
+    checkboxWrapper.appendChild(checkboxInput);
+    checkboxWrapper.appendChild(checkboxLabel);
+
+    // Append the checkboxWrapper to the target element
+    element.appendChild(checkboxWrapper);
+  } else {
+    console.error('Element with class "form__fields" not found.');
+  }
+  return checkboxInput;
 }

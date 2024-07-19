@@ -2,6 +2,7 @@
 let form = $("form:first");
 let phone = $("#subscription_customer_attributes_phone");
 let organization = $("#subscription_customer_attributes_organization");
+let updateTotalsButton = $("#form__section-apply-components");
 let submitbtn = $("#subscription_submit");
 let SaaSField = getComponentField("2264802");
 let WurLinkField = getComponentField("2314160");
@@ -54,6 +55,7 @@ let monitoringServiceFields = [
 let siteContact = getCustomVariableField("57343");
 let siteContactPhone = getCustomVariableField("57344");
 let siteContactEmail = getCustomVariableField("57345");
+let watchCheckBox;
 let qtyZeroEMessage = "Saas quantity must be a positive number";
 let qtyAddOnMessage = "Add Ons must have a value of zero or greater";
 let onlyOneKindMessage = "Only one kind of Wur-Link Add On should be used.";
@@ -71,7 +73,17 @@ $(document).ready(function () {
   showHideSimCards();
   showHideMonitoring();
   showHideSiteInfo();
+  watchCheckBox = addCheckBox(WurtecWatchField[0].parentElement.parentElement);
+  // WurtecWatchField[0].disabled = true;
+  WurtecWatchField[0].style.background = "#eeeeee";
+  WurtecWatchField[0].style.cursor = "not-allowed";
+  WurtecWatchField[0].style.opacity = "1";
+  watchCheckBox.checked = true;
+  watchCheckBox.addEventListener("change", (event) => {
+    watchCheckBoxblur();
+  });
   SaaSField.val();
+  reorderFields();
 });
 
 //This attaches a function to the submitBtn on click
@@ -158,6 +170,7 @@ WurLinkField.blur(function () {
     removeSpecificCustomFieldError($(this), onlyOneKindMessage);
     removeSpecificCustomFieldError(WurLinkFieldVerizon, onlyOneKindMessage);
   }
+  updateTotals();
 });
 
 //When Wur-Link Verizon qty is changed
@@ -175,16 +188,19 @@ WurLinkFieldVerizon.blur(function () {
     removeSpecificCustomFieldError($(this), onlyOneKindMessage);
     removeSpecificCustomFieldError(WurLinkField, onlyOneKindMessage);
   }
+  updateTotals();
 });
 
 //When SaaS qty is changed
 SaaSField.blur(function () {
+  if (watchCheckBox.checked) WurtecWatchField.val(SaaSField.val());
   showHideCarStations();
   if (!validMainQty($(this).val())) {
     setCustomFieldError($(this), qtyZeroEMessage);
   } else {
     removeSpecificCustomFieldError(SaaSField, qtyZeroEMessage);
   }
+  updateTotals();
 });
 
 //When Wurtec Watch qty is changed
@@ -196,7 +212,23 @@ WurtecWatchField.blur(function () {
   } else {
     removeSpecificCustomFieldError($(this), qtyAddOnMessage);
   }
+  watchCheckBoxblur();
+  updateTotals();
 });
+
+function updateTotals() {
+  updateTotalsButton.click();
+}
+
+//When WatchCheckBox changes
+function watchCheckBoxblur() {
+  if (watchCheckBox.checked) {
+    WurtecWatchField.val(SaaSField.val());
+  } else {
+    WurtecWatchField.val(0);
+  }
+  updateTotals();
+}
 
 //attach check to all Car Stations
 for (let i = 0; i < carStationDesignationFields.length; i++) {
@@ -318,11 +350,19 @@ function removeSpecificCustomFieldError(targetElement, errorText) {
 }
 
 function getComponentField(id) {
-  return $("#component_allocated_quantity_" + id);
+  let f = $("#component_allocated_quantity_" + id);
+  if(f.length < 1) console.log(`Couldn't find component with id of ${id}`);
+  return f
 }
 
 function getCustomVariableField(id) {
-  return $("#subscription_metafields_" + id);
+  let f = $("#subscription_metafields_" + id);
+  if(f.length < 1) console.log(`Couldn't find Custom Variable Field with id of ${id}`);
+  return f
+}
+
+function getFieldBox(field) {
+  return field.parentElement.parentElement.parentElement.parentElement;
 }
 
 function showHideCustomVariableField(fieldElement, show) {
@@ -383,4 +423,42 @@ function showHideSiteInfo() {
   showHideCustomVariableField(siteContact, WurtecWatchField.val() > 0);
   showHideCustomVariableField(siteContactPhone, WurtecWatchField.val() > 0);
   showHideCustomVariableField(siteContactEmail, WurtecWatchField.val() > 0);
+}
+
+function addCheckBox(element) {
+  const checkboxInput = document.createElement("input");
+  if (element) {
+    const checkboxWrapper = document.createElement("div");
+    checkboxWrapper.classList.add("checkbox-wrapper");
+    checkboxWrapper.style.paddingTop = "8px";
+
+    checkboxInput.type = "checkbox";
+    checkboxInput.id = "myCheckbox"; // Unique ID for the checkbox
+    checkboxInput.name = "myCheckbox";
+    checkboxInput.value = "myCheckboxValue";
+
+    const checkboxLabel = document.createElement("label");
+    checkboxLabel.htmlFor = "myCheckbox";
+    checkboxLabel.textContent = " I want to add Monitoring";
+    checkboxLabel.style.paddingLeft = "10px";
+    checkboxLabel.style.fontSize = "16px";
+    checkboxLabel.style.fontWeight = "400";
+
+    // Append the input and label to the wrapper
+    checkboxWrapper.appendChild(checkboxInput);
+    checkboxWrapper.appendChild(checkboxLabel);
+
+    // Append the checkboxWrapper to the target element
+    element.appendChild(checkboxWrapper);
+  } else {
+    console.error('Element with class "form__fields" not found.');
+  }
+  return checkboxInput;
+}
+
+function reorderFields() {
+  let SaaSFieldBox = getFieldBox(SaaSField[0]);
+  let WurtecWatchBox = getFieldBox(WurtecWatchField[0]);
+  let allFieldsBox = WurtecWatchBox.parentElement;
+  allFieldsBox.insertBefore(WurtecWatchBox, SaaSFieldBox.nextElementSibling);
 }
