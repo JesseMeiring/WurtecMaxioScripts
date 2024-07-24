@@ -78,7 +78,7 @@ $(document).ready(function () {
   WurtecWatchField[0].style.background = "#eeeeee";
   WurtecWatchField[0].style.cursor = "not-allowed";
   WurtecWatchField[0].style.opacity = "1";
-  watchCheckBox.checked = true;
+  watchCheckBox.checked = false;
   watchCheckBox.addEventListener("change", (event) => {
     watchCheckBoxblur();
   });
