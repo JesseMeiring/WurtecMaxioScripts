@@ -5,9 +5,6 @@ let organization = $("#subscription_customer_attributes_organization");
 let updateTotalsButton = $("#form__section-apply-components");
 let submitbtn = $("#subscription_submit");
 let SaaSField = getComponentField("2264802");
-let WurLinkField = getComponentField("2314160");
-let WurLinkFieldVerizon = getComponentField("2491155");
-let WurtecWatchField = getComponentField("2314161");
 let carStationDesignationFields = [
   getCustomVariableField("56036"),
   getCustomVariableField("56038"),
@@ -40,22 +37,10 @@ let lobbyStationSerialFields = [
   getCustomVariableField("56056"),
   getCustomVariableField("56058"),
 ];
-let simCardFields = [
-  getCustomVariableField("56029"),
-  getCustomVariableField("56030"),
-  getCustomVariableField("56031"),
-  getCustomVariableField("56032"),
-  getCustomVariableField("56033"),
-  getCustomVariableField("56034"),
-];
 let monitoringServiceFields = [
   getCustomVariableField("56026"),
   getCustomVariableField("56027"),
 ];
-let siteContact = getCustomVariableField("57343");
-let siteContactPhone = getCustomVariableField("57344");
-let siteContactEmail = getCustomVariableField("57345");
-let watchCheckBox;
 let qtyZeroEMessage = "Saas quantity must be a positive number";
 let qtyAddOnMessage = "Add Ons must have a value of zero or greater";
 let onlyOneKindMessage = "Only one kind of Wur-Link Add On should be used.";
@@ -70,21 +55,7 @@ $(document).ready(function () {
   organizationLabel.text(organizationLabel.text() + " *");
   showHideCarStations();
   showHideLobbyStations();
-  showHideSimCards();
-  showHideMonitoring();
-  showHideSiteInfo();
-  watchCheckBox = addCheckBox(WurtecWatchField[0].parentElement.parentElement);
-  // WurtecWatchField[0].disabled = true;
-  // WurtecWatchField[0].style.background = "#eeeeee";
-  // WurtecWatchField[0].style.cursor = "not-allowed";
-  // WurtecWatchField[0].style.opacity = "1";
-  WurtecWatchField[0].readOnly = true;
-  watchCheckBox.checked = false;
-  watchCheckBox.addEventListener("change", (event) => {
-    watchCheckBoxblur();
-  });
   SaaSField.val();
-  reorderFields();
 });
 
 //This attaches a function to the submitBtn on click
@@ -101,23 +72,6 @@ submitbtn.click(function () {
   }
   if (!validMainQty(SaaSField.val())) {
     setCustomFieldError(SaaSField, qtyZeroEMessage);
-    errorsCheck = true;
-  }
-  if (!validAddOnQty(WurLinkField.val())) {
-    setCustomFieldError(WurLinkField, qtyAddOnMessage);
-    errorsCheck = true;
-  }
-  if (!validAddOnQty(WurLinkFieldVerizon.val())) {
-    setCustomFieldError(WurLinkFieldVerizon, qtyAddOnMessage);
-    errorsCheck = true;
-  }
-  if (!onlyOnePositive(WurLinkField.val(), WurLinkFieldVerizon.val())) {
-    setCustomFieldError(WurLinkFieldVerizon, onlyOneKindMessage);
-    setCustomFieldError(WurLinkFieldVerizon, onlyOneKindMessage);
-    errorsCheck = true;
-  }
-  if (!validAddOnQty(WurtecWatchField.val())) {
-    setCustomFieldError(WurtecWatchField, qtyAddOnMessage);
     errorsCheck = true;
   }
   for (let i = 0; i < SaaSField.val(); i++) {
@@ -156,48 +110,8 @@ organization.blur(function () {
   }
 });
 
-//When Wur-Link qty is changed
-WurLinkField.blur(function () {
-  showHideSimCards();
-  if (!validAddOnQty($(this).val())) {
-    setCustomFieldError($(this), qtyAddOnMessage);
-  } else {
-    removeSpecificCustomFieldError($(this), qtyAddOnMessage);
-  }
-  if (!onlyOnePositive($(this).val(), WurLinkFieldVerizon.val())) {
-    setCustomFieldError($(this), onlyOneKindMessage);
-    setCustomFieldError(WurLinkFieldVerizon, onlyOneKindMessage);
-  } else {
-    removeSpecificCustomFieldError($(this), onlyOneKindMessage);
-    removeSpecificCustomFieldError(WurLinkFieldVerizon, onlyOneKindMessage);
-  }
-  updateTotals();
-});
-
-//When Wur-Link Verizon qty is changed
-WurLinkFieldVerizon.blur(function () {
-  showHideSimCards();
-  if (!validAddOnQty($(this).val())) {
-    setCustomFieldError($(this), qtyAddOnMessage);
-  } else {
-    removeSpecificCustomFieldError($(this), qtyAddOnMessage);
-  }
-  if (!onlyOnePositive($(this).val(), WurLinkField.val())) {
-    setCustomFieldError($(this), onlyOneKindMessage);
-    setCustomFieldError(WurLinkField, onlyOneKindMessage);
-  } else {
-    removeSpecificCustomFieldError($(this), onlyOneKindMessage);
-    removeSpecificCustomFieldError(WurLinkField, onlyOneKindMessage);
-  }
-  updateTotals();
-});
-
 //When SaaS qty is changed
 SaaSField.blur(function () {
-  if (watchCheckBox.checked) {
-    WurtecWatchField.val(SaaSField.val());
-    watchCheckBoxblur();
-  }
   showHideCarStations();
   if (!validMainQty($(this).val())) {
     setCustomFieldError($(this), qtyZeroEMessage);
@@ -209,18 +123,6 @@ SaaSField.blur(function () {
 
 function updateTotals() {
   updateTotalsButton.click();
-}
-
-//When WatchCheckBox changes
-function watchCheckBoxblur() {
-  if (watchCheckBox.checked) {
-    WurtecWatchField.val(SaaSField.val());
-  } else {
-    WurtecWatchField.val(0);
-  }
-  showHideMonitoring();
-  showHideSiteInfo();
-  updateTotals();
 }
 
 //attach check to all Car Stations
@@ -389,69 +291,4 @@ function showHideLobbyStations() {
         lobbyStationDesignnationFields[i].val() != "" ||
         lobbyStationSerialFields[i].val() != "";
   }
-}
-
-function showHideSimCards() {
-  let cardCount = 0;
-  if (WurLinkField.val() > WurLinkFieldVerizon.val()) {
-    cardCount = WurLinkField.val();
-  } else {
-    cardCount = WurLinkFieldVerizon.val();
-  }
-  for (let i = 0; i < simCardFields.length; i++) {
-    showHideCustomVariableField(simCardFields[i], cardCount > i);
-  }
-}
-
-function showHideMonitoring() {
-  for (let i = 0; i < monitoringServiceFields.length; i++) {
-    showHideCustomVariableField(
-      monitoringServiceFields[i],
-      WurtecWatchField.val() == 0
-    );
-  }
-}
-
-function showHideSiteInfo() {
-  showHideCustomVariableField(siteContact, WurtecWatchField.val() > 0);
-  showHideCustomVariableField(siteContactPhone, WurtecWatchField.val() > 0);
-  showHideCustomVariableField(siteContactEmail, WurtecWatchField.val() > 0);
-}
-
-function addCheckBox(element) {
-  const checkboxInput = document.createElement("input");
-  if (element) {
-    const checkboxWrapper = document.createElement("div");
-    checkboxWrapper.classList.add("checkbox-wrapper");
-    checkboxWrapper.style.paddingTop = "8px";
-
-    checkboxInput.type = "checkbox";
-    checkboxInput.id = "myCheckbox"; // Unique ID for the checkbox
-    checkboxInput.name = "myCheckbox";
-    checkboxInput.value = "myCheckboxValue";
-
-    const checkboxLabel = document.createElement("label");
-    checkboxLabel.htmlFor = "myCheckbox";
-    checkboxLabel.textContent = " I want to add Monitoring";
-    checkboxLabel.style.paddingLeft = "10px";
-    checkboxLabel.style.fontSize = "16px";
-    checkboxLabel.style.fontWeight = "400";
-
-    // Append the input and label to the wrapper
-    checkboxWrapper.appendChild(checkboxInput);
-    checkboxWrapper.appendChild(checkboxLabel);
-
-    // Append the checkboxWrapper to the target element
-    element.appendChild(checkboxWrapper);
-  } else {
-    console.error('Element with class "form__fields" not found.');
-  }
-  return checkboxInput;
-}
-
-function reorderFields() {
-  let SaaSFieldBox = getFieldBox(SaaSField[0]);
-  let WurtecWatchBox = getFieldBox(WurtecWatchField[0]);
-  let allFieldsBox = WurtecWatchBox.parentElement;
-  allFieldsBox.insertBefore(WurtecWatchBox, SaaSFieldBox.nextElementSibling);
 }
