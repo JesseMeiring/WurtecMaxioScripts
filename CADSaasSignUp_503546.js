@@ -4,38 +4,38 @@ let phone = $("#subscription_customer_attributes_phone");
 let organization = $("#subscription_customer_attributes_organization");
 let updateTotalsButton = $("#form__section-apply-components");
 let submitbtn = $("#subscription_submit");
-let SaaSField = getComponentField("2264802");
+let SaaSField = getComponentField("2534373");
 let carStationDesignationFields = [
-  getCustomVariableField("56036"),
-  getCustomVariableField("56038"),
-  getCustomVariableField("56040"),
-  getCustomVariableField("56042"),
-  getCustomVariableField("56044"),
-  getCustomVariableField("56046"),
-  getCustomVariableField("56048"),
-  getCustomVariableField("56050"),
+  getCustomVariableField("78578"),
+  getCustomVariableField("78580"),
+  getCustomVariableField("78582"),
+  getCustomVariableField("78584"),
+  getCustomVariableField("78586"),
+  getCustomVariableField("78588"),
+  getCustomVariableField("78590"),
+  getCustomVariableField("78592"),
 ];
 let carStationSerialFields = [
-  getCustomVariableField("56035"),
-  getCustomVariableField("56037"),
-  getCustomVariableField("56039"),
-  getCustomVariableField("56041"),
-  getCustomVariableField("56043"),
-  getCustomVariableField("56045"),
-  getCustomVariableField("56047"),
-  getCustomVariableField("56049"),
+  getCustomVariableField("78579"),
+  getCustomVariableField("78581"),
+  getCustomVariableField("78583"),
+  getCustomVariableField("78585"),
+  getCustomVariableField("78587"),
+  getCustomVariableField("78589"),
+  getCustomVariableField("78591"),
+  getCustomVariableField("78593"),
 ];
 let lobbyStationDesignnationFields = [
-  getCustomVariableField("56051"),
-  getCustomVariableField("56053"),
-  getCustomVariableField("56055"),
-  getCustomVariableField("56057"),
+  getCustomVariableField("78612"),
+  getCustomVariableField("78614"),
+  getCustomVariableField("78616"),
+  getCustomVariableField("78618"),
 ];
 let lobbyStationSerialFields = [
-  getCustomVariableField("56052"),
-  getCustomVariableField("56054"),
-  getCustomVariableField("56056"),
-  getCustomVariableField("56058"),
+  getCustomVariableField("78613"),
+  getCustomVariableField("78615"),
+  getCustomVariableField("78617"),
+  getCustomVariableField("78619"),
 ];
 let qtyZeroEMessage = "Saas quantity must be a positive number";
 let qtyAddOnMessage = "Add Ons must have a value of zero or greater";

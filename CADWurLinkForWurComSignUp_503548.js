@@ -4,42 +4,21 @@ let phone = $("#subscription_customer_attributes_phone");
 let organization = $("#subscription_customer_attributes_organization");
 let updateTotalsButton = $("#form__section-apply-components");
 let submitbtn = $("#subscription_submit");
-let SaaSField = getComponentField("2264802");
-let carStationDesignationFields = [
-  getCustomVariableField("56036"),
-  getCustomVariableField("56038"),
-  getCustomVariableField("56040"),
-  getCustomVariableField("56042"),
-  getCustomVariableField("56044"),
-  getCustomVariableField("56046"),
-  getCustomVariableField("56048"),
-  getCustomVariableField("56050"),
+let WurLinkField = getComponentField("2534382");
+let WurtecWatchField = getComponentField("2534386");
+let WurtecWatchBox;
+let simCardFields = [
+  getCustomVariableField("78623"),
+  getCustomVariableField("78624"),
+  getCustomVariableField("78625"),
+  getCustomVariableField("78626"),
+  getCustomVariableField("78627"),
+  getCustomVariableField("78628"),
 ];
-let carStationSerialFields = [
-  getCustomVariableField("56035"),
-  getCustomVariableField("56037"),
-  getCustomVariableField("56039"),
-  getCustomVariableField("56041"),
-  getCustomVariableField("56043"),
-  getCustomVariableField("56045"),
-  getCustomVariableField("56047"),
-  getCustomVariableField("56049"),
-];
-let lobbyStationDesignnationFields = [
-  getCustomVariableField("56051"),
-  getCustomVariableField("56053"),
-  getCustomVariableField("56055"),
-  getCustomVariableField("56057"),
-];
-let lobbyStationSerialFields = [
-  getCustomVariableField("56052"),
-  getCustomVariableField("56054"),
-  getCustomVariableField("56056"),
-  getCustomVariableField("56058"),
-];
-let qtyZeroEMessage = "Saas quantity must be a positive number";
-let qtyAddOnMessage = "Add Ons must have a value of zero or greater";
-let onlyOneKindMessage = "Only one kind of Wur-Link Add On should be used.";
+let qtyZeroEMessage = "Wur-Link quantity must be a positive number";
+let qtyAddOnEMessage = "Add Ons must have a value of zero or greater";
+let watchRequiresMessage =
+  "Monitoring requires at least 1 Wurtec Watch per car";
 
 //Runs as soon as the page is ready
 $(document).ready(function () {
@@ -49,9 +28,12 @@ $(document).ready(function () {
     'label[for="subscription_customer_attributes_organization"]'
   );
   organizationLabel.text(organizationLabel.text() + " *");
-  showHideCarStations();
-  showHideLobbyStations();
-  SaaSField.val();
+  showHideSimCards();
+  watchCheckBox = addCheckBox(WurtecWatchField[0].parentElement.parentElement);
+  watchCheckBox.checked = true;
+  watchCheckBox.addEventListener("change", (event) => {
+    watchCheckBoxblur();
+  });
 });
 
 //This attaches a function to the submitBtn on click
@@ -66,19 +48,17 @@ submitbtn.click(function () {
     setError(organization, "Cannot be blank");
     errorsCheck = true;
   }
-  if (!validMainQty(SaaSField.val())) {
-    setCustomFieldError(SaaSField, qtyZeroEMessage);
+  if (!validMainQty(WurLinkField.val())) {
+    setCustomFieldError(WurLinkField, qtyZeroEMessage);
     errorsCheck = true;
   }
-  for (let i = 0; i < SaaSField.val(); i++) {
-    if (carStationDesignationFields[i].val() == "") {
-      setCustomFieldError(carStationDesignationFields[i], "Cannot be blank");
-      errorsCheck = true;
-    }
-    if (carStationSerialFields[i].val() == "") {
-      setCustomFieldError(carStationSerialFields[i], "Cannot be blank");
-      errorsCheck = true;
-    }
+  if (!validAddOnQty(WurtecWatchField.val())) {
+    setCustomFieldError(WurtecWatchField, qtyAddOnEMessage);
+    errorsCheck = true;
+  }
+  if (!monitoringQtyValid()) {
+    setCustomFieldError(WurtecWatchField, watchRequiresMessage);
+    errorsCheck = true;
   }
   if (errorsCheck) {
     setError(submitbtn, "Errors found. Please review form and try again");
@@ -106,13 +86,27 @@ organization.blur(function () {
   }
 });
 
-//When SaaS qty is changed
-SaaSField.blur(function () {
-  showHideCarStations();
+//When Wur-Link qty is changed
+WurLinkField.blur(function () {
+  showHideSimCards();
   if (!validMainQty($(this).val())) {
     setCustomFieldError($(this), qtyZeroEMessage);
   } else {
-    removeSpecificCustomFieldError(SaaSField, qtyZeroEMessage);
+    removeSpecificCustomFieldError($(this), qtyZeroEMessage);
+  }
+  updateTotals();
+});
+
+WurtecWatchField.blur(function () {
+  if (!validAddOnQty($(this).val())) {
+    setCustomFieldError($(this), qtyAddOnEMessage);
+  } else {
+    removeSpecificCustomFieldError($(this), qtyAddOnEMessage);
+  }
+  if (!monitoringQtyValid()) {
+    setCustomFieldError(WurtecWatchField, watchRequiresMessage);
+  } else {
+    removeSpecificCustomFieldError(WurtecWatchField, watchRequiresMessage);
   }
   updateTotals();
 });
@@ -121,32 +115,15 @@ function updateTotals() {
   updateTotalsButton.click();
 }
 
-//attach check to all Car Stations
-for (let i = 0; i < carStationDesignationFields.length; i++) {
-  carStationDesignationFields[i].blur(function () {
-    if (carStationDesignationFields[i].val() != "" || SaaSField.val() <= i) {
-      removeAllCustomFieldErrors(carStationDesignationFields[i]);
-    } else {
-      setCustomFieldError(carStationDesignationFields[i], "Cannot be blank");
-    }
-  });
-  carStationSerialFields[i].blur(function () {
-    if (carStationSerialFields[i].val() != "" || SaaSField.val() <= i) {
-      removeAllCustomFieldErrors(carStationSerialFields[i]);
-    } else {
-      setCustomFieldError(carStationSerialFields[i], "Cannot be blank");
-    }
-  });
-}
-
-//Whenever any lobby station field changes
-for (let i = 0; i < lobbyStationDesignnationFields.length; i++) {
-  lobbyStationDesignnationFields[i].blur(function () {
-    showHideLobbyStations();
-  });
-  lobbyStationSerialFields[i].blur(function () {
-    showHideLobbyStations();
-  });
+//When WatchCheckBox changes
+function watchCheckBoxblur() {
+  if (!watchCheckBox.checked) WurtecWatchField.val(0);
+  if (!monitoringQtyValid()) {
+    setCustomFieldError(WurtecWatchField, watchRequiresMessage);
+  } else {
+    removeSpecificCustomFieldError(WurtecWatchField, watchRequiresMessage);
+  }
+  updateTotals();
 }
 
 function phoneLessThanTenDigits(phoneElement) {
@@ -169,6 +146,10 @@ function validAddOnQty(fieldValue) {
   );
 }
 
+function monitoringQtyValid() {
+  return !(watchCheckBox.checked && WurtecWatchField.val() == 0);
+}
+
 function decimalValue(fieldValue) {
   let fieldvalInt = parseInt(fieldValue);
   let fieldvalFloat = parseFloat(fieldValue);
@@ -185,12 +166,6 @@ function greaterThanZero(fieldValue) {
 
 function numericValue(fieldValue) {
   return !isNaN(parseInt(fieldValue));
-}
-
-function onlyOnePositive(f1, f2) {
-  console.log(f1);
-  console.log(f2);
-  return !(parseInt(f1) > 0 && parseInt(f2) > 0);
 }
 
 //Generic functions (not all used)
@@ -252,10 +227,6 @@ function getCustomVariableField(id) {
   return f
 }
 
-function getFieldBox(field) {
-  return field.parentElement.parentElement.parentElement.parentElement;
-}
-
 function showHideCustomVariableField(fieldElement, show) {
   if (show) {
     fieldElement.parent().parent().parent().show();
@@ -264,27 +235,39 @@ function showHideCustomVariableField(fieldElement, show) {
   }
 }
 
-function showHideCarStations() {
-  for (let i = 0; i < carStationDesignationFields.length; i++) {
-    showHideCustomVariableField(
-      carStationDesignationFields[i],
-      SaaSField.val() > i
-    );
-    showHideCustomVariableField(carStationSerialFields[i], SaaSField.val() > i);
+function showHideSimCards() {
+  for (let i = 0; i < simCardFields.length; i++) {
+    showHideCustomVariableField(simCardFields[i], WurLinkField.val() > i);
   }
 }
 
-function showHideLobbyStations() {
-  let shown = true;
-  for (let i = 0; i < lobbyStationDesignnationFields.length; i++) {
-    showHideCustomVariableField(
-      lobbyStationDesignnationFields[i],
-      i == 0 || shown
-    );
-    showHideCustomVariableField(lobbyStationSerialFields[i], i == 0 || shown);
-    if (shown)
-      shown =
-        lobbyStationDesignnationFields[i].val() != "" ||
-        lobbyStationSerialFields[i].val() != "";
+function addCheckBox(element) {
+  const checkboxInput = document.createElement("input");
+  if (element) {
+    const checkboxWrapper = document.createElement("div");
+    checkboxWrapper.classList.add("checkbox-wrapper");
+    checkboxWrapper.style.paddingTop = "8px";
+
+    checkboxInput.type = "checkbox";
+    checkboxInput.id = "myCheckbox"; // Unique ID for the checkbox
+    checkboxInput.name = "myCheckbox";
+    checkboxInput.value = "myCheckboxValue";
+
+    const checkboxLabel = document.createElement("label");
+    checkboxLabel.htmlFor = "myCheckbox";
+    checkboxLabel.textContent = " I want to add Monitoring";
+    checkboxLabel.style.paddingLeft = "10px";
+    checkboxLabel.style.fontSize = "16px";
+    checkboxLabel.style.fontWeight = "400";
+
+    // Append the input and label to the wrapper
+    checkboxWrapper.appendChild(checkboxInput);
+    checkboxWrapper.appendChild(checkboxLabel);
+
+    // Append the checkboxWrapper to the target element
+    element.appendChild(checkboxWrapper);
+  } else {
+    console.error('Element with class "form__fields" not found.');
   }
+  return checkboxInput;
 }
